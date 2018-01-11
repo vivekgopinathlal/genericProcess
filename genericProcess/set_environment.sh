@@ -1,0 +1,14 @@
+export HDP_COMMON_DATA_LOG=/apps/data/mapr/schneider/poc/genericProcess/log
+export HDP_COMMON_DATA_TEMP=/apps/data/mapr/schneider/poc/genericProcess/temp
+export HDP_COMMON_DATA_ERR=/apps/data/mapr/schneider/poc/genericProcess/error
+export HDP_COMMON_DATA_STG=/apps/data/mapr/schneider/poc/genericProcess/data/staging
+export HDP_COMMON_DATA_TRAN=/apps/data/mapr/schneider/poc/genericProcess/data/transform
+export HDP_COMMON_DATA_REP=/apps/data/mapr/schneider/poc/genericProcess/data/report
+. /opt/mapr/spark/spark-2.1.0/conf/spark-env.sh
+. /opt/mapr/hive/hive-2.1/conf/hive-env.sh
+. /opt/mapr/pig/pig-0.16/src/packages/templates/conf/pig-env.sh
+. /opt/mapr/hadoop/hadoop-0.20.2/conf/hadoop-env.sh
+export PYSPARK_PYTHON=/usr/bin/python
+export LANDING_DIR=/data/apps/landing
+export SRC_LANDING_DIR=/data/apps/src_landing
+export SBOX_DIR=/home/mapr/hadoop/schneider/poc/genericProcess
