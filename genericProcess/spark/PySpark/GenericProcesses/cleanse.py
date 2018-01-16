@@ -1,4 +1,7 @@
-import os, sys, csv, argparse
+import os, sys, csv, argparse, re
+
+from pyspark import SparkContext
+from pyspark.sql import SQLContext, HiveContext, SparkSession
 
 def identifyByHeader(f,colDel):
   return len(next(csv.reader(f, delimiter=colDel)))
@@ -21,21 +24,39 @@ def adjustNewline(wh,reader,numOfAttr,colDel,recDel,ignoreHdr):
     wh.write(colDel.join(irec)+recDel)
   return
 
-def main(args):
+def getDataFrame(sqlContext, myList, headerExist):
+  header_rec = myList[0] if headerExist else []
+  data_rec = myList[1:] if headerExist else myList
+  df = sqlContext.createDataFrame(data_rec, header_rec)
+  #myrdd = spark.parallelize(data_rec)
+  #df = myrdd.toDF(header_rec)
+  return df
+
+
+def readCSVWriteHive(sc, fileHandle, sppversion, colDel, dataBase, hiveTable, removeChar='\n', headerExist=True):
+  dataList=[]
+  for row in csv.reader(fileHandle, delimiter=colDel, quotechar='"'):
+    #dataList.append([w.replace(removeChar,'') for w in row])
+    dataList.append([re.sub("[^A-Z0-9a-z :;,.<>?/'*&^%$#@!|\~`\"]","",w).replace(removeChar,'') for w in row])
+  sqlContext = SQLContext(sc)
+  sqlContext.sql("drop table IF EXISTS "+dataBase+".temptable_"+hiveTable)
+  df = getDataFrame(sqlContext,dataList,headerExist)
+  df.write.mode('overwrite').saveAsTable(dataBase+".temptable_"+hiveTable)
+  
+
+def main(args, sc, hc):
   absFile=args.fileToClean
   hdrBool=args.headerAvail
   colDel=args.delimiter
   ignoreHdr=args.ignoreHeader
   tmpFile=args.outFile
   recDel='\n'
-
-  fh=open(absFile,'r')
+  dataBase='bbiuserdb'
+  hiveTable='departments'
+  fh=open(absFile,'rb')
   numOfAttr=identifyByHeader(fh,colDel) if hdrBool else parseData(fh,colDel)
-  reader=csv.reader(open(absFile,'rb'), delimiter=colDel)
-  wh=open(absFile+'_'+tmpFile,'w+')
-  adjustNewline(wh,reader,numOfAttr,colDel,recDel,ignoreHdr)
-
-  wh.close()
+  readCSVWriteHive(sc, fh, 1.6, colDel=colDel, headerExist=hdrBool, dataBase=dataBase, hiveTable=hiveTable) 
+  #wh.close()
   fh.close()
 
 def parseArguments(parser):
@@ -65,4 +86,7 @@ if __name__ == '__main__':
         else:
            parser.print_help()
            sys.exit(0)
-    main(args)
+    sc = SparkContext()
+    hc = SparkSession.builder.enableHiveSupport().getOrCreate()
+
+    main(args,sc,hc)
