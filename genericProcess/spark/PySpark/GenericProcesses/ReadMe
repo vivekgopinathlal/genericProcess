@@ -1,5 +1,8 @@
 **Cleanse.py**
-  Description: The script cleanses the broken lines in the data and form a proper record
+  Description: The script cleanses the records
+			1. broken lines in the data and form a proper record
+			2. junk characters (ctrl characters if any) standard keyboard inputs are considered
+	       Post cleansing loads the data into Hive table.
   Accepts inputs 
     1. file to be cleansed
     2. If Header exists or Not
@@ -7,3 +10,4 @@
   Optional parameters 
     1. Will accept output file naming convention (However it will write in the same dir as input)
     2. Ignore Header from Target file
+
